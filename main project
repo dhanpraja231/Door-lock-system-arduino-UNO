@@ -1,0 +1,80 @@
+//import required libraries
+#include <LiquidCrystal.h>
+#include <Servo.h>
+#include <Keypad.h>
+
+
+//initialize lcd with attached pins
+LiquidCrystal lcd(A0,A1,A2,A3,A4,A5);
+
+//initialize keypad input
+const int numrows =4;
+const int numcols=4;
+char k[numrows][numcols]{
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+    
+};
+byte rowPins[numrows] = {9,8,7,6};
+byte colPins[numcols] = {5,4,3,2};
+Keypad myKeypad = Keypad(makeKeymap(k),rowPins,colPins,numrows,numcols);
+
+
+//initialize microservo
+Servo myservo;
+int pos = 0;
+myservo.attach(11);
+
+
+
+//to execute only once
+void setup()
+{
+  Serial.begin(9600);
+  lcd.begin(16,2);
+  lcd.print("enter pwd"); //entry text
+  
+  
+  String my_pwd = "2314"; //4 digit original password
+  String user_pwd ="";
+  myservo.write(0);
+  //for 4 digit entry
+  while(user_pwd.length() <= 3)
+  {
+   char keypressed = myKeypad.getKey();
+   if(keypressed != NO_KEY)
+  { 
+    user_pwd += keypressed; //create user pwd
+    Serial.println(user_pwd);
+    lcd.setCursor(0,0);
+    lcd.print("            "); //clear entry text
+    lcd.setCursor(0,0);
+    lcd.print(user_pwd);         
+  }
+  }
+//to compare user input and pwd
+
+if(my_pwd == user_pwd) //if user input matches
+{
+  Serial.println("correct pwd");
+  lcd.setCursor(0,0);
+  lcd.print("correct pwd");
+  while(pos<90) //mechanical output through servo
+  {
+   myservo.write(pos); 
+   pos +=10;
+   delay(100);
+  } 
+        
+} 
+else //if user input does not match
+{
+  Serial.println("Wrong pwd");
+  lcd.setCursor(0,0);
+  lcd.print("Wrong pwd");
+} 
+  user_pwd = ""; //unused code, to be used incase of loop
+  pos = 0;
+}
